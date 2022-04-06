@@ -249,6 +249,14 @@ class CookerStatus(DeviceStatus):
             return "Unknown stage"
 
     @property
+    def stage_des(self) -> str:
+        """Current stage description if cooking."""
+        try:
+            return COOKING_STAGES[self.data["phase"]]["description"]
+        except KeyError:
+            return "Unknown stage"
+
+    @property
     def temperature(self) -> Optional[int]:
         """Current temperature, if idle.
 
