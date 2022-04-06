@@ -7,9 +7,9 @@ from typing import List, Optional
 import click
 import crcmod
 
-from miio.click_common import command, format_output
-from miio.device import Device, DeviceStatus
-from miio.exceptions import DeviceException
+from .click_common import command, format_output
+from .device import Device, DeviceStatus
+from .exceptions import DeviceException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class OperationMode(enum.Enum):
     Unknown = "unknown"
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, _):
         return OperationMode.Unknown
 
 
@@ -118,7 +118,7 @@ class TemperatureHistory(DeviceStatus):
 
     @property
     def raw(self) -> str:
-        return "".join(["{:02x}".format(value) for value in self.data])
+        return "".join([f"{value:02x}" for value in self.data])
 
     def __str__(self) -> str:
         return str(self.data)
@@ -137,9 +137,11 @@ class MultiCookerProfile:
             if not self.is_valid():
                 raise CookerException("Profile checksum error")
 
+            self.set_schedule_enabled(False)
+
             if duration is not None:
                 self.set_duration(duration)
-            if schedule is not None:
+            if schedule is not None and schedule > 0 and schedule <= 1440:
                 self.set_schedule_enabled(True)
                 self.set_schedule_duration(schedule)
             if akw is not None:
@@ -184,9 +186,6 @@ class MultiCookerProfile:
 
     def set_schedule_duration(self, duration):
         """Set the schedule time (delay before cooking) in minutes."""
-        if duration > 1440:
-            return
-
         schedule_flag = self.profile_bytes[14] & 0x80
         self.profile_bytes[14] = math.floor(duration / 60) & 0xFF
         self.profile_bytes[14] |= schedule_flag
@@ -321,6 +320,8 @@ class CookerStatus(DeviceStatus):
 class MultiCooker(Device):
     """Main class representing the multi cooker."""
 
+    _supported_models = [MODEL_MULTI]
+
     @command(
         default_output=format_output(
             "",
@@ -363,12 +364,12 @@ class MultiCooker(Device):
             "boil",
         ]
 
-        values = []
+        values = dict()
         for prop in properties:
-            values.append(self.send("get_prop", [prop])[0])
+            values[prop] = self.send("get_prop", [prop])[0]
 
         properties_count = len(properties)
-        values_count = len(values)
+        values_count = len([x for x in values.values() if x != ""])
         if properties_count != values_count:
             _LOGGER.debug(
                 "Count (%s) of requested properties does not match the "
@@ -377,7 +378,7 @@ class MultiCooker(Device):
                 values_count,
             )
 
-        return CookerStatus(defaultdict(lambda: None, zip(properties, values)))
+        return CookerStatus(values)
 
     @command(
         click.argument("profile", type=str, required=True),
