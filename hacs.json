@@ -1,0 +1,6 @@
+{
+  "name": "Xiaomi Cooker mod",
+  "content_in_root": true,
+  "domains": ["sensor", "xiaomi_miio_cooker"],
+  "country": "SG"
+}
