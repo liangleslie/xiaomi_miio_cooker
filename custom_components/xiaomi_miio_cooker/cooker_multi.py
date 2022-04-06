@@ -7,9 +7,9 @@ from typing import List, Optional
 import click
 import crcmod
 
-from .click_common import command, format_output
-from .device import Device, DeviceStatus
-from .exceptions import DeviceException
+from miio.click_common import command, format_output
+from miio.device import Device, DeviceStatus
+from miio.exceptions import DeviceException
 
 _LOGGER = logging.getLogger(__name__)
 
