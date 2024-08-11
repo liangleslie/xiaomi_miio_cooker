@@ -3,6 +3,7 @@ import logging
 from enum import Enum
 from typing import Optional
 
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
@@ -70,8 +71,8 @@ class XiaomiCookerSensor(Entity):
 
     async def async_added_to_hass(self):
         """Register callbacks."""
-        self.hass.helpers.dispatcher.async_dispatcher_connect(
-            "{}_updated".format(COOKER_DOMAIN), self.async_update_callback
+        async_dispatcher_connect(
+            self.hass, "{}_updated".format(COOKER_DOMAIN), self.async_update_callback
         )
 
     @property

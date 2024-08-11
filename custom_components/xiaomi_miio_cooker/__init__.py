@@ -154,9 +154,9 @@ def setup(hass, config):
             hass.data[DATA_KEY][host][DATA_STATE] = state
 
             if state.mode in [OperationMode.Running, OperationMode.AutoKeepWarm]:
-                hass.data[DATA_KEY][host][
-                    DATA_TEMPERATURE_HISTORY
-                ] = cooker.get_temperature_history()
+                hass.data[DATA_KEY][host][DATA_TEMPERATURE_HISTORY] = (
+                    cooker.get_temperature_history()
+                )
 
             dispatcher_send(hass, "{}_updated".format(DOMAIN), host)
 
